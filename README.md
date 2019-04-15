@@ -13,7 +13,12 @@ an opinionated and simple secrets to environment variable tool
 go get -u github.com/james-lawrence/vaultenv
 ```
 
-### quick start
+### command flags/options
+```
+vaultenv --help
+```
+
+### quick start examples
 assuming you've logged in to vault.
 
 ```bash
@@ -30,6 +35,24 @@ assuming you've logged in to vault.
 vaultenv secret/key1 secret/key2
 # output:
 # PATH=/usr/bin
+# FOO=bar3
+# BIZZ=BAZZ
+# HELLO=world
+```
+
+```bash
+# given the following secrets
+# runtime environment:
+# PATH=/usr/bin
+# FOO=bar1
+# secret/key1:
+# FOO=bar2
+# BIZZ=BAZZ
+# secret/key2:
+# FOO=bar3
+# HELLO=world
+vaultenv --clean secret/key1 secret/key2
+# output:
 # FOO=bar3
 # BIZZ=BAZZ
 # HELLO=world
