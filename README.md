@@ -2,10 +2,19 @@
 an opinionated and simple secrets to environment variable tool
 
 ### the rules
-- obey standard vault environment variable settings. (VAULT_ADDR, etc)
+- only works with kv secret backends.
+- obey standard vault environment variable settings. (VAULT_ADDR, VAULT_TOKEN, etc)
 - all secrets must be valid environment key/value pairs. no additional parsing or conversation is done.
 - kv pairs are merged left to right. left most kv pairs are the environment of vaultenv itself.
 - always uses the latest version of a secret.
+
+### installation
+```
+go get -u github.com/james-lawrence/vaultenv
+```
+
+### quick start
+assuming you've logged in to vault.
 
 ```bash
 # given the following secrets
