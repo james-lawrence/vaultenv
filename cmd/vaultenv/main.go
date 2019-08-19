@@ -44,5 +44,6 @@ func main() {
 		if _, err = os.Stdout.WriteString(env); err != nil {
 			log.Fatalln(err)
 		}
+		os.Stdout.WriteString("\n")
 	}
 }
