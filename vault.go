@@ -45,6 +45,7 @@ func NewVault() (v Vault, err error) {
 	if client, err = api.NewClient(config); err != nil {
 		return v, errors.WithStack(err)
 	}
+
 	client.SetToken(stringsx.DefaultIfBlank(client.Token(), readTokenFile(vaultDefaultTokenPath())))
 
 	return Vault{
