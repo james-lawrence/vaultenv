@@ -1,6 +1,7 @@
 package vaultenv
 
 import (
+	"context"
 	"io"
 	"io/ioutil"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/vault/api"
+	"github.com/hashicorp/vault/api/auth/kubernetes"
 	"github.com/james-lawrence/vaultenv/internal/x/errorsx"
 	"github.com/james-lawrence/vaultenv/internal/x/stringsx"
 	"github.com/pkg/errors"
@@ -31,8 +33,22 @@ func vaultDefaultTokenPath() string {
 	return filepath.Join(u.HomeDir, ".vault-token")
 }
 
+func DetectAuth() api.AuthMethod {
+	switch os.Getenv("VAULTENV_AUTH_METHOD") {
+	case "k8s":
+		if a, err := kubernetes.NewKubernetesAuth(os.Getenv("VAULTENV_AUTH_K8S_ROLE_NAME")); err == nil {
+			return a
+		} else {
+			log.Println("")
+			return nil
+		}
+	default:
+		return nil
+	}
+}
+
 // NewVault configures vault with defaults.
-func NewVault() (v Vault, err error) {
+func NewVault(auth api.AuthMethod) (v Vault, err error) {
 	var (
 		client *api.Client
 		config *api.Config
@@ -46,7 +62,13 @@ func NewVault() (v Vault, err error) {
 		return v, errors.WithStack(err)
 	}
 
-	client.SetToken(stringsx.DefaultIfBlank(client.Token(), readTokenFile(vaultDefaultTokenPath())))
+	if auth == nil {
+		client.SetToken(stringsx.DefaultIfBlank(client.Token(), readTokenFile(vaultDefaultTokenPath())))
+	} else {
+		if _, err = client.Auth().Login(context.Background(), auth); err != nil {
+			return v, errors.WithStack(err)
+		}
+	}
 
 	return Vault{
 		client: client,

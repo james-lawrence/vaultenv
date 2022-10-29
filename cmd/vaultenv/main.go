@@ -28,7 +28,7 @@ func envcmd(cmd *kingpin.CmdClause) *kingpin.CmdClause {
 	cmd.Flag("output", "set the destination file to output; defaults to stdout").Short('o').StringVar(&path)
 
 	cmd.Action(func(pc *kingpin.ParseContext) error {
-		if v, err = vaultenv.NewVault(); err != nil {
+		if v, err = vaultenv.NewVault(vaultenv.DetectAuth()); err != nil {
 			return err
 		}
 
@@ -80,7 +80,7 @@ func execcmd(cmd *kingpin.CmdClause) *kingpin.CmdClause {
 	cmd.Arg("secrets", "paths to secrets and the command to execute separated by a ':'. i.e.) vaultenv exec my/secret/path : echo hello world").StringsVar(&secrets)
 	cmd.Flag("clean", "clear the environment before merging secrets").Default("false").BoolVar(&clean)
 	cmd.Action(func(pc *kingpin.ParseContext) error {
-		if v, err = vaultenv.NewVault(); err != nil {
+		if v, err = vaultenv.NewVault(vaultenv.DetectAuth()); err != nil {
 			return err
 		}
 
