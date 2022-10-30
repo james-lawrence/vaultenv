@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/vault/api"
+	"github.com/hashicorp/vault/api/auth/gcp"
 	"github.com/hashicorp/vault/api/auth/kubernetes"
 	"github.com/james-lawrence/vaultenv/internal/x/errorsx"
 	"github.com/james-lawrence/vaultenv/internal/x/stringsx"
@@ -33,18 +34,50 @@ func vaultDefaultTokenPath() string {
 	return filepath.Join(u.HomeDir, ".vault-token")
 }
 
-func DetectAuth() api.AuthMethod {
-	switch os.Getenv("VAULTENV_AUTH_METHOD") {
-	case "k8s":
-		if a, err := kubernetes.NewKubernetesAuth(os.Getenv("VAULTENV_AUTH_K8S_ROLE_NAME")); err == nil {
-			return a
-		} else {
-			log.Println("")
-			return nil
-		}
-	default:
-		return nil
+func DetectAuth(method string) api.AuthMethod {
+	if method == "" {
+		method = os.Getenv("VAULTENV_AUTH_METHOD")
 	}
+
+	switch method {
+	case "k8s":
+		a, err := kubernetes.NewKubernetesAuth(
+			os.Getenv("VAULTENV_AUTH_ROLE"),
+		)
+
+		if err == nil {
+			return a
+		}
+
+		log.Println("failed to authenticate with kubernetes", err)
+	case "gcp-gce":
+		a, err := gcp.NewGCPAuth(
+			os.Getenv("VAULTENV_AUTH_ROLE"),
+			gcp.WithGCEAuth(),
+		)
+
+		if err == nil {
+			return a
+		}
+
+		log.Println("failed to authenticate with gcp-gce", err)
+	case "gcp-iam":
+		a, err := gcp.NewGCPAuth(
+			os.Getenv("VAULTENV_AUTH_ROLE"),
+			gcp.WithIAMAuth(
+				os.Getenv("VAULTENV_AUTH_GCP_IAM_SERVICE_ACCOUNT"),
+			),
+		)
+
+		if err == nil {
+			return a
+		}
+
+		log.Println("failed to authenticate with gcp-iam", err)
+	default:
+	}
+
+	return nil
 }
 
 // NewVault configures vault with defaults.

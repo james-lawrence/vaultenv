@@ -17,6 +17,7 @@ func envcmd(cmd *kingpin.CmdClause) *kingpin.CmdClause {
 	var (
 		err     error
 		path    string
+		auth    string
 		secrets []string
 		clean   bool
 		v       vaultenv.Vault
@@ -26,9 +27,10 @@ func envcmd(cmd *kingpin.CmdClause) *kingpin.CmdClause {
 	cmd.Arg("secrets", "paths to secrets being read").StringsVar(&secrets)
 	cmd.Flag("clean", "clear the environment before merging secrets").Default("false").BoolVar(&clean)
 	cmd.Flag("output", "set the destination file to output; defaults to stdout").Short('o').StringVar(&path)
+	cmd.Flag("auth", "auth method to use: k8s (kubernetes), gcp-gce, gcp-iam. defaults to using the vault token.").StringVar(&auth)
 
 	cmd.Action(func(pc *kingpin.ParseContext) error {
-		if v, err = vaultenv.NewVault(vaultenv.DetectAuth()); err != nil {
+		if v, err = vaultenv.NewVault(vaultenv.DetectAuth(auth)); err != nil {
 			return err
 		}
 
@@ -72,6 +74,7 @@ func envcmd(cmd *kingpin.CmdClause) *kingpin.CmdClause {
 func execcmd(cmd *kingpin.CmdClause) *kingpin.CmdClause {
 	var (
 		err     error
+		auth    string
 		secrets []string
 		clean   bool
 		v       vaultenv.Vault
@@ -79,8 +82,10 @@ func execcmd(cmd *kingpin.CmdClause) *kingpin.CmdClause {
 
 	cmd.Arg("secrets", "paths to secrets and the command to execute separated by a ':'. i.e.) vaultenv exec my/secret/path : echo hello world").StringsVar(&secrets)
 	cmd.Flag("clean", "clear the environment before merging secrets").Default("false").BoolVar(&clean)
+	cmd.Flag("auth", "auth method to use: k8s (kubernetes), gcp-gce, gcp-iam. defaults to using the vault token. all auth methods require environment variables to use").StringVar(&auth)
+
 	cmd.Action(func(pc *kingpin.ParseContext) error {
-		if v, err = vaultenv.NewVault(vaultenv.DetectAuth()); err != nil {
+		if v, err = vaultenv.NewVault(vaultenv.DetectAuth(auth)); err != nil {
 			return err
 		}
 
