@@ -3,7 +3,6 @@ package vaultenv
 import (
 	"context"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/user"
@@ -166,7 +165,7 @@ func readTokenFile(path string) string {
 		raw []byte
 	)
 
-	if raw, err = ioutil.ReadFile(path); err != nil {
+	if raw, err = os.ReadFile(path); err != nil {
 		log.Println("failed to read vault token from file", path, err)
 		return ""
 	}
